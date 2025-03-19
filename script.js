@@ -18,7 +18,7 @@ const app = {
         const left = (screen.width / 2) - (width / 2);
         const top = (screen.height / 2) - (height / 2);
         
-        window.open(
+        const oauthWindow = window.open(
             `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`,
             'OAuthPopup',
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,noopener`
@@ -28,27 +28,27 @@ const app = {
         window.addEventListener("message", this.handleOAuthResponse.bind(this), false);
     },
 
-    // 处理 OAuth 响应
+    // 处理 OAuth 返回的消息
     handleOAuthResponse: function(event) {
-        // 确保消息来自我们的重定向 URI
+        // 确保消息来自正确的源
         if (event.origin !== this.REDIRECT_URI) {
             console.error("Invalid origin:", event.origin);
             return;
         }
 
-        const token = event.data; // 获取 token
-        
+        const token = event.data; // 获取 Access Token
+
         // 确保返回的数据是有效的 Token
         if (token && token.access_token) {
             this.accessToken = token.access_token;
             localStorage.setItem("access_token", this.accessToken);
 
-            // 关闭 OAuth 窗口（如果存在）
+            // 关闭 OAuth 窗口
             if (event.source) {
                 event.source.close(); 
             }
 
-            // 加载相簿
+            // 加载 Google 照片
             this.loadGooglePhotos();
         } else {
             console.error("No access token received or invalid data.");
@@ -67,11 +67,6 @@ const app = {
         this.fetchAlbums();
         this.loadPhotos();
         document.getElementById("logout-btn").style.display = "block";
-    },
-
-    // 获取 Access Token
-    getAccessToken: function() {
-        // ... 可根据需求实现，或根据使用 OAuth 窗口简化删除
     },
 
     // 退出登录
@@ -117,7 +112,6 @@ const app = {
         });
     },
 
-    // 加载照片
     loadPhotos: function() {
         const albumSelect = document.getElementById("album-select");
         this.albumId = albumSelect.value === "all" ? null : albumSelect.value;
@@ -134,7 +128,6 @@ const app = {
         }
     },
 
-    // 获取所有照片
     fetchAllPhotos: function() {
         const url = "https://photoslibrary.googleapis.com/v1/mediaItems:search";
 
@@ -163,7 +156,6 @@ const app = {
         });
     },
 
-    // 获取指定相簿的照片
     fetchPhotos: function() {
         const url = "https://photoslibrary.googleapis.com/v1/mediaItems:search";
         const body = {
@@ -190,7 +182,6 @@ const app = {
         });
     },
 
-    // 渲染照片
     renderPhotos: function() {
         const photoContainer = document.getElementById("photo-container");
         if (!photoContainer) {
@@ -217,7 +208,6 @@ const app = {
         document.getElementById("app-container").style.display = "flex"; 
     },
 
-    // 打开 Lightbox
     openLightbox: function(index) {
         this.currentPhotoIndex = index;
         const lightbox = document.getElementById("lightbox");
@@ -231,7 +221,6 @@ const app = {
         clearInterval(this.slideshowInterval); // 停止轮播
     },
 
-    // 改变照片
     changePhoto: function(direction) {
         this.currentPhotoIndex += direction;
         if (this.currentPhotoIndex < 0) {
@@ -242,7 +231,6 @@ const app = {
         this.showCurrentPhoto(); 
     },
 
-    // 显示当前照片
     showCurrentPhoto: function() {
         const lightboxImage = document.getElementById("lightbox-image");
         lightboxImage.src = `${this.photos[this.currentPhotoIndex].baseUrl}=w1200-h800`;
