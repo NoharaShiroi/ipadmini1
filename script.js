@@ -20,7 +20,7 @@ const app = {
         const oauthWindow = window.open(
             `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`,
             'OAuthPopup',
-            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes`
+            `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,noopener`
         );
 
         window.addEventListener("message", this.handleOAuthResponse.bind(this), false);
@@ -50,6 +50,7 @@ const app = {
         document.getElementById("app-container").style.display = "none";
         document.getElementById("logout-btn").style.display = "none";
     },
+
 
     fetchAlbums: function() {
         if (!this.accessToken) return;
