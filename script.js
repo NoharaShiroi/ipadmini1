@@ -10,59 +10,71 @@ const app = {
     slideshowInterval: null,
     slideshowSpeed: 3000, // 默认速度（毫秒）
     isSlideshowPlaying: false,
+
+    // 打开 OAuth 授权窗口
     openOAuthPopup: function() {
         const width = 500;
         const height = 600;
-
         const left = (screen.width / 2) - (width / 2);
         const top = (screen.height / 2) - (height / 2);
-        const oauthWindow = window.open(
+        
+        window.open(
             `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`,
             'OAuthPopup',
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,noopener`
         );
 
+        // 监听来自 OAuth 窗口的消息
         window.addEventListener("message", this.handleOAuthResponse.bind(this), false);
     },
 
+    // 处理 OAuth 响应
     handleOAuthResponse: function(event) {
+        // 确保消息来自我们的重定向 URI
         if (event.origin !== this.REDIRECT_URI) {
+            console.error("Invalid origin:", event.origin);
             return;
         }
-        const { data } = event;
+
+        const token = event.data; // 获取 token
+        
         // 确保返回的数据是有效的 Token
-        if (data && data.access_token) {
-            this.accessToken = data.access_token;
+        if (token && token.access_token) {
+            this.accessToken = token.access_token;
             localStorage.setItem("access_token", this.accessToken);
-            document.getElementById("auth-container").style.display = "none";
-            document.getElementById("app-container").style.display = "flex";
-            this.fetchAlbums();
-            this.loadPhotos();
-            document.getElementById("logout-btn").style.display = "block";
-        }
-    },
-getAccessToken: function() {
-        const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        if (hashParams.has("access_token")) {
-            this.accessToken = hashParams.get("access_token");
-            sessionStorage.setItem("access_token", this.accessToken);
-            window.history.replaceState({}, document.title, window.location.pathname);
-        }
-        if (this.accessToken) {
-            document.getElementById("auth-container").style.display = "none";
-            document.getElementById("app-container").style.display = "flex";
-            this.fetchAlbums();
-            this.loadPhotos();
+
+            // 关闭 OAuth 窗口（如果存在）
+            if (event.source) {
+                event.source.close(); 
+            }
+
+            // 加载相簿
+            this.loadGooglePhotos();
         } else {
-            document.getElementById("auth-container").style.display = "flex";
-            document.getElementById("app-container").style.display = "none";
+            console.error("No access token received or invalid data.");
         }
     },
 
-    authorizeUser: function() {
-        const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`;
-        window.location.href = authUrl;
+    // 加载 Google 照片
+    loadGooglePhotos: function() {
+        if (!this.accessToken) {
+            console.error("No access token available. Please log in.");
+            return;
+        }
+
+        document.getElementById("auth-container").style.display = "none";
+        document.getElementById("app-container").style.display = "flex";
+        this.fetchAlbums();
+        this.loadPhotos();
+        document.getElementById("logout-btn").style.display = "block";
     },
+
+    // 获取 Access Token
+    getAccessToken: function() {
+        // ... 可根据需求实现，或根据使用 OAuth 窗口简化删除
+    },
+
+    // 退出登录
     logoutGoogle: function() {
         localStorage.removeItem("access_token");
         this.accessToken = null;
@@ -71,7 +83,7 @@ getAccessToken: function() {
         document.getElementById("logout-btn").style.display = "none";
     },
 
-
+    // 获取相簿
     fetchAlbums: function() {
         if (!this.accessToken) return;
         const url = "https://photoslibrary.googleapis.com/v1/albums?pageSize=50";
@@ -93,6 +105,7 @@ getAccessToken: function() {
         });
     },
 
+    // 渲染相簿列表
     renderAlbumList: function(albums) {
         const albumSelect = document.getElementById("album-select");
         albumSelect.innerHTML = '<option value="all">所有相片</option>'; 
@@ -104,6 +117,7 @@ getAccessToken: function() {
         });
     },
 
+    // 加载照片
     loadPhotos: function() {
         const albumSelect = document.getElementById("album-select");
         this.albumId = albumSelect.value === "all" ? null : albumSelect.value;
@@ -120,6 +134,7 @@ getAccessToken: function() {
         }
     },
 
+    // 获取所有照片
     fetchAllPhotos: function() {
         const url = "https://photoslibrary.googleapis.com/v1/mediaItems:search";
 
@@ -148,6 +163,7 @@ getAccessToken: function() {
         });
     },
 
+    // 获取指定相簿的照片
     fetchPhotos: function() {
         const url = "https://photoslibrary.googleapis.com/v1/mediaItems:search";
         const body = {
@@ -174,6 +190,7 @@ getAccessToken: function() {
         });
     },
 
+    // 渲染照片
     renderPhotos: function() {
         const photoContainer = document.getElementById("photo-container");
         if (!photoContainer) {
@@ -200,6 +217,7 @@ getAccessToken: function() {
         document.getElementById("app-container").style.display = "flex"; 
     },
 
+    // 打开 Lightbox
     openLightbox: function(index) {
         this.currentPhotoIndex = index;
         const lightbox = document.getElementById("lightbox");
@@ -213,6 +231,7 @@ getAccessToken: function() {
         clearInterval(this.slideshowInterval); // 停止轮播
     },
 
+    // 改变照片
     changePhoto: function(direction) {
         this.currentPhotoIndex += direction;
         if (this.currentPhotoIndex < 0) {
@@ -223,6 +242,7 @@ getAccessToken: function() {
         this.showCurrentPhoto(); 
     },
 
+    // 显示当前照片
     showCurrentPhoto: function() {
         const lightboxImage = document.getElementById("lightbox-image");
         lightboxImage.src = `${this.photos[this.currentPhotoIndex].baseUrl}=w1200-h800`;
