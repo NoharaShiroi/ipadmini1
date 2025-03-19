@@ -8,7 +8,7 @@ const app = {
     currentPhotoIndex: 0,
     nextPageToken: null,
     slideshowInterval: null,
-    slideshowSpeed: 3000, // 默认速度（毫秒）
+    slideshowSpeed: 3000,
     isSlideshowPlaying: false,
 
     // 打开 OAuth 授权窗口
@@ -17,8 +17,8 @@ const app = {
         const height = 600;
         const left = (screen.width / 2) - (width / 2);
         const top = (screen.height / 2) - (height / 2);
-        
-        const oauthWindow = window.open(
+
+        window.open(
             `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`,
             'OAuthPopup',
             `width=${width},height=${height},top=${top},left=${left},scrollbars=yes,noopener`
@@ -236,6 +236,14 @@ const app = {
         lightboxImage.src = `${this.photos[this.currentPhotoIndex].baseUrl}=w1200-h800`;
     }
 };
+
+// 当 DOM 内容加载完成后，添加事件监听
+document.addEventListener("DOMContentLoaded", () => {
+    document.getElementById("authorize-btn").onclick = app.openOAuthPopup.bind(app);
+    document.getElementById("logout-btn").onclick = app.logoutGoogle.bind(app);
+
+    // 其他初始化代码...
+});
 
 // 当 DOM 内容加载完成后，添加事件监听
 document.addEventListener("DOMContentLoaded", () => {
