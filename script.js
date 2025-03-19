@@ -10,7 +10,28 @@ const app = {
     slideshowInterval: null,
     slideshowSpeed: 3000, // 默认速度（毫秒）
     isSlideshowPlaying: false,
+   getAccessToken: function() {
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
+        if (hashParams.has("access_token")) {
+            this.accessToken = hashParams.get("access_token");
+            sessionStorage.setItem("access_token", this.accessToken);
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+        if (this.accessToken) {
+            document.getElementById("auth-container").style.display = "none";
+            document.getElementById("app-container").style.display = "flex";
+            this.fetchAlbums();
+            this.loadPhotos();
+        } else {
+            document.getElementById("auth-container").style.display = "flex";
+            document.getElementById("app-container").style.display = "none";
+        }
+    },
 
+    authorizeUser: function() {
+        const authUrl = `https://accounts.google.com/o/oauth2/auth?client_id=${this.CLIENT_ID}&redirect_uri=${encodeURIComponent(this.REDIRECT_URI)}&response_type=token&scope=${this.SCOPES}&prompt=consent`;
+        window.location.href = authUrl;
+    },
     openOAuthPopup: function() {
         const width = 500;
         const height = 600;
