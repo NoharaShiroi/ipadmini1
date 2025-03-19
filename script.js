@@ -249,7 +249,7 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("authorize-btn").onclick = app.openOAuthPopup.bind(app);
     document.getElementById("logout-btn").onclick = app.logoutGoogle.bind(app);
-    app.getAccessToken();
+    
 
     // 绑定 Lightbox 点击事件关闭
     document.getElementById("lightbox").addEventListener("click", function(event) {
