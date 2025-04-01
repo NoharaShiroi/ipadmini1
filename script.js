@@ -130,23 +130,38 @@ const app = {
     },
 
     handleAuthFlow() {
-        gapi.load('auth2', function() {
+    console.log("開始載入 Google API");
+
+    gapi.load('auth2', function() {
+        console.log("Google API 載入完成");
+
+        // 初始化 Google 登入
         const auth2 = gapi.auth2.init({
             client_id: this.CLIENT_ID,
             scope: this.SCOPES,
-            prompt: 'consent', // 強制要求授權
+            prompt: 'consent',
         });
 
+        console.log("初始化 Google 登入成功");
+
+        // 觸發登入流程
         auth2.signIn().then(function(googleUser) {
+            console.log("授權成功");
+
             const accessToken = googleUser.getAuthResponse().access_token;
             this.states.accessToken = accessToken;
             localStorage.setItem("access_token", accessToken);
 
-            console.log("授權成功，access_token:", accessToken);
             this.showApp();
         }.bind(this), function(error) {
-            console.error('授權錯誤:', error);
-            alert("授權錯誤：" + error.error);
+            console.error('授權失敗:', error);
+
+            // 如果授權被阻擋，提示錯誤
+            if (error.error === 'popup_blocked') {
+                alert("授權過程被瀏覽器攔截。請檢查瀏覽器設定，確保彈出窗口被允許。");
+            } else {
+                alert("授權錯誤：" + error.error);
+            }
             this.handleAuthError();
         }.bind(this));
     }.bind(this));
