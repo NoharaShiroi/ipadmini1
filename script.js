@@ -131,23 +131,22 @@ const app = {
 
     handleAuthFlow() {
         gapi.load('auth2', function() {
-        // 初始化 Google 登入
         const auth2 = gapi.auth2.init({
-            client_id: this.CLIENT_ID,  // 替換為你的 CLIENT_ID
+            client_id: this.CLIENT_ID,
             scope: this.SCOPES,
+            prompt: 'consent', // 強制要求授權
         });
 
-        // 觸發登入流程
         auth2.signIn().then(function(googleUser) {
-            // 獲取 access token
             const accessToken = googleUser.getAuthResponse().access_token;
             this.states.accessToken = accessToken;
-            sessionStorage.setItem("access_token", accessToken);
+            localStorage.setItem("access_token", accessToken);
 
-            // 成功登入，顯示應用程式界面
+            console.log("授權成功，access_token:", accessToken);
             this.showApp();
         }.bind(this), function(error) {
-            console.error('授權失敗:', error);
+            console.error('授權錯誤:', error);
+            alert("授權錯誤：" + error.error);
             this.handleAuthError();
         }.bind(this));
     }.bind(this));
