@@ -140,7 +140,7 @@ const app = {
             state: 'pass-through-value',
             prompt: 'consent'
         };
-        window.location.href = authEndpoint + '?' + new URLSearchParams(params);
+       window.open(authEndpoint + '?' + new URLSearchParams(params).toString(), '_self');
     },
 
     checkAuth() {
