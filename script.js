@@ -129,7 +129,7 @@ const app = {
         return hours * 60 + minutes;
     },
 
-    handleAuthFlow() {
+handleAuthFlow() {
     console.log("開始載入 Google API");
 
     gapi.load('auth2', function() {
