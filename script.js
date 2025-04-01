@@ -1,6 +1,6 @@
 const app = {
     CLIENT_ID: "1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com",
-    REDIRECT_URI: "https://noharashiroi.github.io/photo-frame/",
+    REDIRECT_URI: "https://noharashiroi.github.io/ipadmini1/",
     SCOPES: "https://www.googleapis.com/auth/photoslibrary.readonly",
 
     states: {
@@ -130,30 +130,40 @@ const app = {
     },
 
     handleAuthFlow() {
-        const authEndpoint = 'https://accounts.google.com/o/oauth2/v2/auth';
-        const params = {
-            client_id: this.CLIENT_ID,
-            redirect_uri: this.REDIRECT_URI,
-            response_type: 'token',
+        gapi.load('auth2', function() {
+        // 初始化 Google 登入
+        const auth2 = gapi.auth2.init({
+            client_id: this.CLIENT_ID,  // 替換為你的 CLIENT_ID
             scope: this.SCOPES,
-            include_granted_scopes: 'true',
-            state: 'pass-through-value',
-            prompt: 'consent'
-        };
-        window.location.href = authEndpoint + '?' + new URLSearchParams(params);
-    },
+        });
+
+        // 觸發登入流程
+        auth2.signIn().then(function(googleUser) {
+            // 獲取 access token
+            const accessToken = googleUser.getAuthResponse().access_token;
+            this.states.accessToken = accessToken;
+            sessionStorage.setItem("access_token", accessToken);
+
+            // 成功登入，顯示應用程式界面
+            this.showApp();
+        }.bind(this), function(error) {
+            console.error('授權失敗:', error);
+            this.handleAuthError();
+        }.bind(this));
+    }.bind(this));
+},
 
     checkAuth() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
-        if (hashParams.has("access_token")) {
-            this.states.accessToken = hashParams.get("access_token");
-            sessionStorage.setItem("access_token", this.states.accessToken);
-            window.history.replaceState({}, "", window.location.pathname);
-            this.showApp();
-            return true;
-        }
-        return false;
-    },
+    if (hashParams.has("access_token")) {
+        this.states.accessToken = hashParams.get("access_token");
+        sessionStorage.setItem("access_token", this.states.accessToken);
+        window.history.replaceState({}, "", window.location.pathname);
+        this.showApp();
+        return true;
+    }
+    return false;
+},
 
     showApp() {// When logged in, hide the auth container and show the app container
     document.getElementById("auth-container").style.display = "none";
