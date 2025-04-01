@@ -137,9 +137,9 @@ const app = {
 
         // 初始化 Google 登入
         const auth2 = gapi.auth2.init({
-            client_id: this.CLIENT_ID,
+            client_id: 1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com,  // 替換為你的 CLIENT_ID
             scope: this.SCOPES,
-            prompt: 'consent',
+            prompt: 'consent', // 強制要求授權
         });
 
         console.log("初始化 Google 登入成功");
@@ -156,9 +156,9 @@ const app = {
         }.bind(this), function(error) {
             console.error('授權失敗:', error);
 
-            // 如果授權被阻擋，提示錯誤
-            if (error.error === 'popup_blocked') {
-                alert("授權過程被瀏覽器攔截。請檢查瀏覽器設定，確保彈出窗口被允許。");
+            // 如果用戶手動關閉彈出窗口，提示他們
+            if (error.error === 'popup_closed_by_user') {
+                alert("授權過程已被中止。請不要關閉授權窗口，並確保授權流程完成。");
             } else {
                 alert("授權錯誤：" + error.error);
             }
