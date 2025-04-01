@@ -137,7 +137,7 @@ const app = {
 
         // 初始化 Google 登入
         const auth2 = gapi.auth2.init({
-            client_id: 1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com,  // 替換為你的 CLIENT_ID
+            client_id: '1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com',  // 替換為你的 CLIENT_ID
             scope: this.SCOPES,
             prompt: 'consent', // 強制要求授權
         });
