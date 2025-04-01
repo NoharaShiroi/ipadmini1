@@ -1,6 +1,6 @@
 const app = {
     CLIENT_ID: "1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com",
-    REDIRECT_URI: "https://noharashiroi.github.io/ipadmini1/",
+    REDIRECT_URI: "https://noharashiroi.github.io/photo-frame/",
     SCOPES: "https://www.googleapis.com/auth/photoslibrary.readonly",
 
     states: {
@@ -16,11 +16,11 @@ const app = {
         currentRequestId: 0,
         lightboxActive: false,
         isFullscreen: false,
-        preloadCount: 250,
-        loadedForSlideshow: 0,
-        playedPhotos: new Set(),
-        overlayTimeout: null,
-        overlayDisabled: false,
+        preloadCount: 250, // 新增預載照片數量設定
+        loadedForSlideshow: 0, // 記錄已為幻燈片加載的照片數量
+        playedPhotos: new Set(), // 記錄已播放過的照片ID
+        overlayTimeout: null,      // 儲存計時器ID
+        overlayDisabled: false,   // 記錄遮罩是否被臨時取消
         schedule: {
             sleepStart: "22:00",
             sleepEnd: "07:00",
@@ -32,30 +32,30 @@ const app = {
     },
 
     init() {
-        this.states.isOldiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
+    this.states.isOldiOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && 
                      !window.MSStream && 
                      /OS [1-9]_.* like Mac OS X/.test(navigator.userAgent);
 
-        this.states.accessToken = sessionStorage.getItem("access_token");
-        this.setupEventListeners();
-        
-        if (!this.checkAuth()) {
-            // 未授權：顯示登入介面
-            document.getElementById("auth-container").style.display = "flex";
-            document.getElementById("app-container").style.display = "none";
-            if (this.states.isOldiOS) {
-                document.getElementById("screenOverlay").style.display = "none";
-            }
-        } else {
-            // 已授權：初始化應用程式
-            this.loadSchedule();
-            this.checkSchedule();
-            setInterval(() => {
-                console.log('執行定期排程檢查');
-                this.checkSchedule();
-            }, this.states.isOldiOS ? 300000 : 60000);
+    this.states.accessToken = sessionStorage.getItem("access_token");
+    this.setupEventListeners();
+    
+    if (!this.checkAuth()) {
+        // 未授權：顯示登入介面
+        document.getElementById("auth-container").style.display = "flex";
+        document.getElementById("app-container").style.display = "none"; // Hide the app container initially
+        if (this.states.isOldiOS) {
+            document.getElementById("screenOverlay").style.display = "none";
         }
-    },
+    } else {
+        // 已授權：初始化應用程式
+        this.loadSchedule();
+        this.checkSchedule();
+        setInterval(() => {
+            console.log('執行定期排程檢查');
+            this.checkSchedule();
+        }, this.states.isOldiOS ? 300000 : 60000);
+    }
+},
 // 加載排程設定
     loadSchedule() {
         const schedule = JSON.parse(localStorage.getItem("schedule"));
@@ -140,23 +140,7 @@ const app = {
             state: 'pass-through-value',
             prompt: 'consent'
         };
-       if (this.states.isOldiOS) {
-            window.location.href = authEndpoint + '?' + new URLSearchParams(params);
-        } else {
-            // 使用POST方法傳送授權請求
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = authEndpoint;
-            Object.entries(params).forEach(([key, value]) => {
-                const hiddenInput = document.createElement('input');
-                hiddenInput.type = 'hidden';
-                hiddenInput.name = key;
-                hiddenInput.value = value;
-                form.appendChild(hiddenInput);
-            });
-            document.body.appendChild(form);
-            form.submit();
-        }
+        window.location.href = authEndpoint + '?' + new URLSearchParams(params);
     },
 
     checkAuth() {
@@ -168,7 +152,6 @@ const app = {
             this.showApp();
             return true;
         }
-        console.error('授權失敗：未找到access_token');
         return false;
     },
 
