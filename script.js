@@ -137,14 +137,15 @@ const app = {
 
         // 初始化 Google 登入
         const auth2 = gapi.auth2.init({
-            client_id: '1004388657829-mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com',  // 替換為你的 CLIENT_ID
+            client_id: 'mvpott95dsl5bapu40vi2n5li7i7t7d1.apps.googleusercontent.com',  // 使用你的 CLIENT_ID
             scope: this.SCOPES,
             prompt: 'consent', // 強制要求授權
         });
 
         console.log("初始化 Google 登入成功");
 
-        // 觸發登入流程
+        // 使用 window.open 來打開授權窗口
+        const authWindow = window.open('', '', 'width=500,height=500');
         auth2.signIn().then(function(googleUser) {
             console.log("授權成功");
 
@@ -153,10 +154,11 @@ const app = {
             localStorage.setItem("access_token", accessToken);
 
             this.showApp();
+            authWindow.close(); // 授權成功後關閉窗口
         }.bind(this), function(error) {
             console.error('授權失敗:', error);
 
-            // 如果用戶手動關閉彈出窗口，提示他們
+            // 提供清晰的錯誤提示
             if (error.error === 'popup_closed_by_user') {
                 alert("授權過程已被中止。請不要關閉授權窗口，並確保授權流程完成。");
             } else {
@@ -165,7 +167,8 @@ const app = {
             this.handleAuthError();
         }.bind(this));
     }.bind(this));
-},
+}
+,
 
     checkAuth() {
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
